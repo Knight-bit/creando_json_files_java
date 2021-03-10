@@ -26,12 +26,12 @@ public class WritingFile {
     String chicos_id_path;
     String heroes_id_path;
     String chicos_path;
-    ArrayList<String> chicos_list_name;
+    JSONObject chicos_list_name;
     Scanner sc;
     File[] files;
     public WritingFile(File[] files){
         this.json_parser = new JSONParser();
-        this.chicos_list_name = new ArrayList<String>();
+        this.chicos_list_name = new JSONObject();
         this.chicos_path = "C:/Users/WorldEditor/Documents/Python_Scripts/Python_Dataanalysis/datos/chicos/";
         this.chicos_id_path = "C:/Users/WorldEditor/Documents/Python_Scripts/Python_Dataanalysis/datos/chicos/chicos_id.json";
         this.heroes_id_path = "C:\\Users\\WorldEditor\\Documents\\Python_Scripts\\Python_Dataanalysis\\datos\\heroes_id\\heroes_id.json";
@@ -88,8 +88,10 @@ public class WritingFile {
                    JSONObject match;
                    byte counter_store = 0;
                    for(Object item : store_friends){
-                       ArrayList<String> copia_lista_chicos =(ArrayList)chicos_list_name.clone(); 
-                       String name = copia_lista_chicos.remove(counter_store);
+                       JSONObject copia_lista_chicos =(JSONObject) chicos_list_name.clone();
+                       
+                       //Tengo que remover el objecto que se va  escribir para no agregarlo como amigo
+                       copia_lista_chicos.remove()
                        player = (JSONObject) item;
                        match = (JSONObject) player.get(name);
                        readAndWriteMatch(match, result, name, copia_lista_chicos);
@@ -148,7 +150,9 @@ public class WritingFile {
                 long match_id =(long) result.get("match_id");
                 //Nos fijamos si esta vacia la lista de heroes
                 if(heroe.isEmpty()){
+                    //Creamos el modelo y lo agregamos al JSONArray
                     modelo = getFirstHeroe(name ,heroe_localized_name);
+                    heroe.add(modelo);
                 }
                 else{
                     //Hacemos la condicion para recorer la lista y 
@@ -169,7 +173,9 @@ public class WritingFile {
                     }
                     //El heroe no existe en el jsonarray y debe crearse
                     if(exist == false){
+                        //Creamos el modelo y lo agregamos al JSONArray
                         modelo = getFirstHeroe(name ,heroe_localized_name);
+                        heroe.add(modelo);
                     }
                     //Compruebo si el match ya esta archivado
                     else{
@@ -347,7 +353,6 @@ public class WritingFile {
                     modelo.put("wins", (long) modelo.get("wins") + 1);
                     chico_profile = amigoVictoria(chico_profile, modelo, amigos);
                 }
-
                 writeJson(chico_profile, name);
                 System.out.println("Archivo de " + name + " escrito con exito");
                 
