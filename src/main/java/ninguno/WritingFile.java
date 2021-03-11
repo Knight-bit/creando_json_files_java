@@ -252,8 +252,11 @@ public class WritingFile {
                 modelo.put("total_matches", (long) modelo.get("total_matches") + 1);
                 modelo_list_copy = (ArrayList) modelo.get("match_id");
                 modelo_list_copy.add(match_id);
-                modelo.put("matches_id", modelo_list_copy);
-
+                modelo.put("match_id", modelo_list_copy);
+                modelo_list_copy = (ArrayList) chico_profile.get("match_id");
+                modelo_list_copy.add(match_id);
+                chico_profile.put("match_id", modelo_list_copy);
+                
                 modelo_list_copy = (ArrayList) modelo.get("kills");
                 modelo_list_copy.add(kills);
                 modelo.put("kills", modelo_list_copy);
