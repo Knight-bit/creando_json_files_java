@@ -84,22 +84,21 @@ public class WritingFile {
                }
                
                if(!store_friends.isEmpty()){
-                   JSONObject player;
+                   JSONObject chico_obj;
                    JSONObject match;
-                   byte counter_store = 0;
+                   JSONArray copia_lista_chicos;
                    for(Object item : store_friends){
-                       JSONObject copia_lista_chicos =(JSONObject) chicos_list_name.clone();
-                       
-                       //Tengo que remover el objecto que se va  escribir para no agregarlo como amigo
-                       copia_lista_chicos.remove()
-                       player = (JSONObject) item;
-                       match = (JSONObject) player.get(name);
+                       copia_lista_chicos =(JSONArray) store_friends.clone();
+                       //Tengo que remover el objecto que se va  escribir para que no lo escriba como amigo
+                       copia_lista_chicos.remove((JSONObject) item);
+                       chico_obj = (JSONObject) item;
+                       String name = (String) chico_obj.get("name");
+                       match = (JSONObject) chico_obj.get("data"); 
                        readAndWriteMatch(match, result, name, copia_lista_chicos);
-                       counter_store ++;
-                   } 
+                       copia_lista_chicos.clear();
+                   }
                }
                //Despeja ambas variables para futuro uso
-               chicos_list_name.clear();
                obj.clear();
                store_friends.clear();
                //sc.next();
@@ -117,9 +116,23 @@ public class WritingFile {
        }
 
     }
+     //Metodo para filtrar amigos de desconocidos y meterlos en el JSONArray
+    private JSONObject getAmigos(JSONObject item){
+        
+        String player_id = String.valueOf(item.get("account_id"));
+        if(chicos_id.containsKey(player_id)){
+            String name = (String)chicos_id.get(player_id);
+            JSONObject chico = new JSONObject();
+            chico.put("data", item);
+            chico.put("name", name);
+            return chico;
+        }
+        return null;
+        
+    }
     
     private void  readAndWriteMatch(JSONObject player, JSONObject result, String name_chico,
-            ArrayList amigos){
+            JSONArray amigos){
         //Si el id es igual al de mi amigos, entonces guarda los datos
         String name = name_chico;
         /*
@@ -368,99 +381,139 @@ public class WritingFile {
         */
         
     }
-    //Metodo para filtrar amigos de desconocidos y meterlos en el JSONArray
-    private JSONObject getAmigos(JSONObject item){
-        
-        String player_id = String.valueOf(item.get("account_id"));
-        if(chicos_id.containsKey(player_id)){
-            String name = (String)chicos_id.get(player_id);
-            chicos_list_name.add(name);
-            JSONObject chico = new JSONObject();
-            chico.put(name, item);
-            return chico;
-        }
-        return null;
-        
-    }
     //Funciones para escribir el json del amigo y modificar las victorias y derrotas
     private JSONObject amigoVictoria(JSONObject modelo_principal ,JSONObject modelo_match,
-            ArrayList<String> amigos){
+            JSONArray amigos){
         
         if(!amigos.isEmpty()){
-            JSONObject modelo =(JSONObject) modelo_principal.get("friends");
-            JSONObject modelo_partida =(JSONObject) modelo_match.get("friends");
+            JSONArray modelo =(JSONArray) modelo_principal.get("friends");
+            JSONArray modelo_partida =(JSONArray) modelo_match.get("friends");
             JSONObject dummy;
             JSONObject dummy2;
-            for(String amigo: amigos){
+            long value;
+            String amigo_name;
+            boolean check = false;
+            for(Object amigo: amigos){
                 //Primero escribo el principal
-                if(modelo.containsKey(amigo)){
-                    dummy = (JSONObject) modelo.get(amigo);
-                    dummy.put("wins",(long) dummy.get("wins") + 1);
-                    dummy.put("total_matches",(long) dummy.get("total_matches") + 1);       
-                }else{
-                    dummy = getFriend(amigo);
-                    dummy.put("wins",(long) dummy.get("wins") + 1);
-                    dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
-                   
+                JSONObject referencia_principal;
+                dummy = (JSONObject) amigo;
+                amigo_name = (String) dummy.get("name");
+                for(Object item : modelo){
+                    //Referencia al modelo principal
+                    referencia_principal = (JSONObject) item;
+                    if(referencia_principal.containsValue(amigo_name)){
+                        value =(long) referencia_principal.get("wins");
+                        referencia_principal.put("wins", value);
+                        value = (long) referencia_principal.get("total_matches");
+                        referencia_principal.put("total_matches",value); 
+                        check = true;
+                        break;
+                    }
                 }
-                 modelo.put(amigo, dummy);
-                //Ahora el modelo del heroe que es parte de match
-                if(modelo_partida.containsKey(amigo)){
-                   dummy = (JSONObject) modelo_partida.get(amigo);
-                   dummy.put("wins",(long) dummy.get("wins") + 1);
-                   dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
-                }else{
-                    dummy = getFriend(amigo);
-                    dummy.put("wins",(long) dummy.get("wins") + 1);
-                    dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
+                
+                if(!check){
+                    dummy2 =(JSONObject) dummy.get("data");
+                    long amigo_id =(long) dummy2.get("account_id");
+                    JSONObject data = getFriend(amigo_name, amigo_id);
+                    data.put("wins",(long) data.get("wins") + 1);
+                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    modelo.add(data);
+                    check = false;
                 }
-                modelo_partida.put(amigo, dummy);
+                for(Object item : modelo_partida){
+                    //Referencia al modelo principal
+                    referencia_principal = (JSONObject) item;
+                    if(referencia_principal.containsValue(amigo_name)){
+                        value =(long) referencia_principal.get("wins");
+                        referencia_principal.put("wins", value);
+                        value = (long) referencia_principal.get("total_matches");
+                        referencia_principal.put("total_matches",value); 
+                        check = true;
+                        break;
+                    }
+                }
+                if(!check){
+                    dummy2 =(JSONObject) dummy.get("data");
+                    long amigo_id =(long) dummy2.get("account_id");
+                    JSONObject data = getFriend(amigo_name, amigo_id);
+                    data.put("wins",(long) data.get("wins") + 1);
+                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    modelo_partida.add(data);
+                    check = false;
+                }
             }
             return modelo_principal;
         } else{
             return modelo_principal;
         }
-        
     }
+    
     private JSONObject amigoDerrota(JSONObject modelo_principal ,JSONObject modelo_match,
-            ArrayList<String> amigos){
+            JSONArray amigos){
+        
         if(!amigos.isEmpty()){
-            JSONObject modelo =(JSONObject) modelo_principal.get("friends");
-            JSONObject modelo_partida =(JSONObject) modelo_match.get("friends");
+            JSONArray modelo =(JSONArray) modelo_principal.get("friends");
+            JSONArray modelo_partida =(JSONArray) modelo_match.get("friends");
             JSONObject dummy;
             JSONObject dummy2;
-            for(String amigo: amigos){
+            long value;
+            String amigo_name;
+            boolean check = false;
+            for(Object amigo: amigos){
                 //Primero escribo el principal
-                if(modelo.containsKey(amigo)){
-                    dummy = (JSONObject) modelo.get(amigo);
-                    dummy.put("loses",(long) dummy.get("loses") + 1);
-                    dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
-                }else{
-                    dummy = getFriend(amigo);
-                    dummy.put("loses",(long) dummy.get("loses") + 1);
-                    dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
+                JSONObject referencia_principal;
+                dummy = (JSONObject) amigo;
+                amigo_name = (String) dummy.get("name");
+                for(Object item : modelo){
+                    //Referencia al modelo principal
+                    referencia_principal = (JSONObject) item;
+                    if(referencia_principal.containsValue(amigo_name)){
+                        value =(long) referencia_principal.get("loses");
+                        referencia_principal.put("loses", value);
+                        value = (long) referencia_principal.get("total_matches");
+                        referencia_principal.put("total_matches",value); 
+                        check = true;
+                        break;
+                    }
                 }
-                modelo.put(amigo, dummy);
-                //Ahora el modelo del heroe que es parte de match
-                if(modelo_partida.containsKey(amigo)){
-                   dummy = (JSONObject) modelo_partida.get(amigo);
-                   dummy.put("loses",(long) dummy.get("loses") + 1);
-                   dummy.put("total_matches",(long) dummy.get("total_matches") + 1);
-
-                }else{
-                    dummy = getFriend(amigo);
-                    dummy2 = (JSONObject) dummy.get(amigo);
-                    dummy2.put("loses",(long) dummy2.get("loses") + 1);
-                    dummy2.put("total_matches",(long) dummy2.get("total_matches") + 1);
+                
+                if(!check){
+                    dummy2 =(JSONObject) dummy.get("data");
+                    long amigo_id =(long) dummy2.get("account_id");
+                    JSONObject data = getFriend(amigo_name, amigo_id);
+                    data.put("loses",(long) data.get("loses") + 1);
+                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    modelo.add(data);
+                    check = false;
                 }
-                modelo_partida.put(amigo, dummy);
+                for(Object item : modelo_partida){
+                    //Referencia al modelo principal
+                    referencia_principal = (JSONObject) item;
+                    if(referencia_principal.containsValue(amigo_name)){
+                        value =(long) referencia_principal.get("loses");
+                        referencia_principal.put("loses", value);
+                        value = (long) referencia_principal.get("total_matches");
+                        referencia_principal.put("total_matches",value); 
+                        check = true;
+                        break;
+                    }
+                }
+                if(!check){
+                    dummy2 =(JSONObject) dummy.get("data");
+                    long amigo_id =(long) dummy2.get("account_id");
+                    JSONObject data = getFriend(amigo_name, amigo_id);
+                    data.put("loses",(long) data.get("loses") + 1);
+                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    modelo_partida.add(data);
+                    check = false;
+                }
             }
             return modelo_principal;
         } else{
             return modelo_principal;
         }
-        
     }
+    
 
     //Funciones para escribir el json del amigo y modificar las victorias y derrotas end
     
@@ -513,6 +566,7 @@ public class WritingFile {
         modelo.put("xp_per_min", new ArrayList<Long>());
         modelo.put("level", new ArrayList<Long>());
         modelo.put("friends", new JSONArray());
+        modelo.put("heroes", new JSONArray());
         return modelo;
     }
     private FileReader getFile(String name_argument){
@@ -535,6 +589,7 @@ public class WritingFile {
                 modelo.put("kills", 0);
                 modelo.put("deaths", 0);
                 modelo.put("assists", 0);
+                modelo.put("match_id", new ArrayList<Long>());
                 modelo.put("heroes", new JSONArray());
                 modelo.put("friends", new JSONArray());
                 FileWriter file = new FileWriter(chicos_path + name + ".json");  
