@@ -82,7 +82,6 @@ public class WritingFile {
                        }
                    }
                }
-               
                if(!store_friends.isEmpty()){
                    JSONObject chico_obj;
                    JSONObject match;
@@ -164,7 +163,8 @@ public class WritingFile {
                 //Nos fijamos si esta vacia la lista de heroes
                 if(heroe.isEmpty()){
                     //Creamos el modelo y lo agregamos al JSONArray
-                    modelo = getFirstHeroe(name ,heroe_localized_name);
+                    System.out.println("Primer heroe creado");
+                    modelo = getFirstHeroe(heroe_name ,heroe_localized_name);
                     heroe.add(modelo);
                 }
                 else{
@@ -176,24 +176,29 @@ public class WritingFile {
                     for(Object item : heroe){
                         item_dummy = (JSONObject) item;
                         name_item = (String) item_dummy.get("name");
+                        //System.out.println("Item a comparar: " + name_item + "; item heroe : " + heroe_name );
+                        //System.out.println(item);
                         //Objecto existe y le pasamos la referencia a modelo
                         //Cortamos el loop
                         if(name_item.equals(heroe_name)){
+                            //System.out.println("Quiero ver si esto se activa");
                             modelo = item_dummy;
                             exist = true;
                             break;
                         }
+                        
                     }
                     //El heroe no existe en el jsonarray y debe crearse
                     if(exist == false){
                         //Creamos el modelo y lo agregamos al JSONArray
-                        modelo = getFirstHeroe(name ,heroe_localized_name);
+                        modelo = getFirstHeroe(heroe_name ,heroe_localized_name);
                         heroe.add(modelo);
                     }
                     //Compruebo si el match ya esta archivado
                     else{
                         ArrayList matches_played = (ArrayList) modelo.get("match_id");
                         if(matches_played.contains(match_id)){
+                            System.out.println("Match skipeado");
                             return;
                         }
                     }
@@ -405,9 +410,9 @@ public class WritingFile {
                     //Referencia al modelo principal
                     referencia_principal = (JSONObject) item;
                     if(referencia_principal.containsValue(amigo_name)){
-                        value =(long) referencia_principal.get("wins");
+                        value =(long) referencia_principal.get("wins") + 1;
                         referencia_principal.put("wins", value);
-                        value = (long) referencia_principal.get("total_matches");
+                        value = (long) referencia_principal.get("total_matches") + 1;
                         referencia_principal.put("total_matches",value); 
                         check = true;
                         break;
@@ -418,18 +423,19 @@ public class WritingFile {
                     dummy2 =(JSONObject) dummy.get("data");
                     long amigo_id =(long) dummy2.get("account_id");
                     JSONObject data = getFriend(amigo_name, amigo_id);
-                    data.put("wins",(long) data.get("wins") + 1);
-                    data.put("total_matches",(long) data.get("total_matches") + 1);
-                    modelo.add(data);
+                    value =(long) data.get("wins") + 1;
+                    data.put("wins",value);
+                    value =(long) data.get("total_matches") + 1;
+                    data.put("total_matches",value);
                     check = false;
                 }
                 for(Object item : modelo_partida){
                     //Referencia al modelo principal
                     referencia_principal = (JSONObject) item;
                     if(referencia_principal.containsValue(amigo_name)){
-                        value =(long) referencia_principal.get("wins");
+                        value =(long) referencia_principal.get("wins") + 1;
                         referencia_principal.put("wins", value);
-                        value = (long) referencia_principal.get("total_matches");
+                        value = (long) referencia_principal.get("total_matches") + 1;
                         referencia_principal.put("total_matches",value); 
                         check = true;
                         break;
@@ -464,38 +470,40 @@ public class WritingFile {
             boolean check = false;
             for(Object amigo: amigos){
                 //Primero escribo el principal
-                JSONObject referencia_principal;
+                JSONObject referencia_modelo;
                 dummy = (JSONObject) amigo;
                 amigo_name = (String) dummy.get("name");
                 for(Object item : modelo){
                     //Referencia al modelo principal
-                    referencia_principal = (JSONObject) item;
-                    if(referencia_principal.containsValue(amigo_name)){
-                        value =(long) referencia_principal.get("loses");
-                        referencia_principal.put("loses", value);
-                        value = (long) referencia_principal.get("total_matches");
-                        referencia_principal.put("total_matches",value); 
+                    referencia_modelo = (JSONObject) item;
+                    if(referencia_modelo.containsValue(amigo_name)){
+                        value =(long) referencia_modelo.get("loses") + 1;
+                        referencia_modelo.put("loses", value);
+                        value = (long) referencia_modelo.get("total_matches") + 1;
+                        referencia_modelo.put("total_matches",value); 
                         check = true;
                         break;
                     }
                 }
-                
                 if(!check){
                     dummy2 =(JSONObject) dummy.get("data");
                     long amigo_id =(long) dummy2.get("account_id");
                     JSONObject data = getFriend(amigo_name, amigo_id);
-                    data.put("loses",(long) data.get("loses") + 1);
-                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    value = (long) data.get("loses") + 1;
+                    data.put("loses", value);
+                    value = (long) data.get("total_matches") + 1;
+                    data.put("total_matches", value);
                     modelo.add(data);
                     check = false;
                 }
+                JSONObject referencia_principal = new JSONObject();
                 for(Object item : modelo_partida){
                     //Referencia al modelo principal
                     referencia_principal = (JSONObject) item;
                     if(referencia_principal.containsValue(amigo_name)){
-                        value =(long) referencia_principal.get("loses");
+                        value =(long) referencia_principal.get("loses") + 1;
                         referencia_principal.put("loses", value);
-                        value = (long) referencia_principal.get("total_matches");
+                        value = (long) referencia_principal.get("total_matches") + 1;
                         referencia_principal.put("total_matches",value); 
                         check = true;
                         break;
@@ -505,8 +513,10 @@ public class WritingFile {
                     dummy2 =(JSONObject) dummy.get("data");
                     long amigo_id =(long) dummy2.get("account_id");
                     JSONObject data = getFriend(amigo_name, amigo_id);
-                    data.put("loses",(long) data.get("loses") + 1);
-                    data.put("total_matches",(long) data.get("total_matches") + 1);
+                    value = (long) data.get("loses") + 1;
+                    data.put("loses",value);
+                    value = (long) data.get("total_matches") + 1;
+                    data.put("total_matches",value);
                     modelo_partida.add(data);
                     check = false;
                 }

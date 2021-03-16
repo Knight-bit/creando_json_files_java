@@ -24,27 +24,21 @@ public class App
         new WritingFile(file_list);
         
         /*
-        JSONArray lista_json = new JSONArray();
-        JSONArray lista_json_vacia = new JSONArray();
+        JSONArray data = new JSONArray();
         JSONObject modelo1 = new JSONObject();
-        JSONObject modelo2 = new JSONObject();
-        JSONObject modelo3 = new JSONObject();
         modelo1.put("name", "mati");
-        modelo1.put("ohaiho", "oasd");
-        modelo2.put("name", "asd");
-        modelo3.put("name", "223");
-        lista_json.add(modelo1);
-        lista_json.add(modelo2);
-        lista_json.add(modelo3);
-        JSONObject dummy;
-        for(Object item : lista_json){
-            dummy = (JSONObject) item;
-            System.out.println(dummy.containsValue("mati"));
+        JSONObject modelo2 = new JSONObject();
+        modelo2.put("name", "migue");
+        data.add(modelo1);
+        data.add(modelo2);
+        JSONObject referencia;
+        String name = "mati";
+        for(Object item : data){
+            referencia = (JSONObject) item;
+            System.out.println(referencia);
+            if(referencia.containsValue(name))
+                System.out.println("Si, tiene mati");
         }
-        
-        //System.out.println(lista_json_vacia.isEmpty());
-        //lista_json.remove(modelo2);
-        System.out.println(lista_json);
         */
     }
 }
